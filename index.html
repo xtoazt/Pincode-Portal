@@ -50,13 +50,67 @@
             // Add more codes and their corresponding links here
         };
 
-        // Function to open the link in a new tab
-        function openLink() {
+        // Function to fetch the title and favicon of a website
+        async function fetchSiteInfo(url) {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'text/html' }
+            });
+            const text = await response.text();
+
+            // Extract the <title> from the site's HTML
+            const titleMatch = text.match(/<title>(.*?)<\/title>/);
+            const title = titleMatch ? titleMatch[1] : "Loaded Site";
+
+            // Extract the favicon (if it exists)
+            const faviconMatch = text.match(/<link rel="icon" href="(.*?)" type="image\/.*?">/);
+            const favicon = faviconMatch ? faviconMatch[1] : "https://www.example.com/favicon.ico"; // Default favicon
+
+            return { title, favicon };
+        }
+
+        // Function to open the link in a new tab with an iframe
+        async function openLink() {
             const code = document.getElementById("codeInput").value.trim();
 
             if (codeLinks[code]) {
-                const newTab = window.open('about:blank', '_blank'); // Open a new blank tab
-                newTab.location = codeLinks[code]; // Set the location of the new tab to the corresponding URL
+                // Open a new blank tab
+                const newTab = window.open('about:blank', '_blank');
+
+                // Fetch site information (title and favicon)
+                const { title, favicon } = await fetchSiteInfo(codeLinks[code]);
+
+                // Wait for the new tab to load
+                newTab.document.open();
+                newTab.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${title}</title>
+                        <link rel="icon" href="${favicon}" type="image/x-icon">
+                        <style>
+                            body {
+                                margin: 0;
+                                height: 100vh;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                            iframe {
+                                width: 100%;
+                                height: 100%;
+                                border: none;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <iframe src="${codeLinks[code]}"></iframe>
+                    </body>
+                    </html>
+                `);
+                newTab.document.close();
             } else {
                 alert("Invalid code! Please enter a valid code.");
             }
@@ -64,3 +118,4 @@
     </script>
 </body>
 </html>
+
