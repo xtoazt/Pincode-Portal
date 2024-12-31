@@ -42,45 +42,37 @@
     </div>
 
     <script>
-        // Object to map codes to links
+        // Object to map codes to links and favicon
         const codeLinks = {
-            "abc": "https://www.example1.com",
-            "xyz": "https://www.example2.com",
-            "123": "https://www.example3.com"
-            // Add more codes and their corresponding links here
+            "abc": {
+                url: "https://www.example1.com",
+                title: "Example 1",
+                favicon: "https://www.example1.com/favicon.ico"
+            },
+            "xyz": {
+                url: "https://www.example2.com",
+                title: "Example 2",
+                favicon: "https://www.example2.com/favicon.ico"
+            },
+            "123": {
+                url: "https://www.example3.com",
+                title: "Example 3",
+                favicon: "https://www.example3.com/favicon.ico"
+            }
+            // Add more codes and their corresponding data here
         };
 
-        // Function to fetch the title and favicon of a website
-        async function fetchSiteInfo(url) {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: { 'Content-Type': 'text/html' }
-            });
-            const text = await response.text();
-
-            // Extract the <title> from the site's HTML
-            const titleMatch = text.match(/<title>(.*?)<\/title>/);
-            const title = titleMatch ? titleMatch[1] : "Loaded Site";
-
-            // Extract the favicon (if it exists)
-            const faviconMatch = text.match(/<link rel="icon" href="(.*?)" type="image\/.*?">/);
-            const favicon = faviconMatch ? faviconMatch[1] : "https://www.example.com/favicon.ico"; // Default favicon
-
-            return { title, favicon };
-        }
-
         // Function to open the link in a new tab with an iframe
-        async function openLink() {
+        function openLink() {
             const code = document.getElementById("codeInput").value.trim();
 
             if (codeLinks[code]) {
+                const siteData = codeLinks[code];
+
                 // Open a new blank tab
                 const newTab = window.open('about:blank', '_blank');
 
-                // Fetch site information (title and favicon)
-                const { title, favicon } = await fetchSiteInfo(codeLinks[code]);
-
-                // Wait for the new tab to load
+                // Write HTML content for the new tab
                 newTab.document.open();
                 newTab.document.write(`
                     <!DOCTYPE html>
@@ -88,8 +80,8 @@
                     <head>
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>${title}</title>
-                        <link rel="icon" href="${favicon}" type="image/x-icon">
+                        <title>${siteData.title}</title>
+                        <link rel="icon" href="${siteData.favicon}" type="image/x-icon">
                         <style>
                             body {
                                 margin: 0;
@@ -106,7 +98,7 @@
                         </style>
                     </head>
                     <body>
-                        <iframe src="${codeLinks[code]}"></iframe>
+                        <iframe src="${siteData.url}"></iframe>
                     </body>
                     </html>
                 `);
@@ -118,4 +110,3 @@
     </script>
 </body>
 </html>
-
